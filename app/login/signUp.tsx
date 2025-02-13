@@ -14,10 +14,10 @@ export default function SignUp() {
     const onSubmit = async() => {
       await createUserWithEmailAndPassword(auth, email, password).then(async (userCred) => {
         const user = userCred.user;
-        await setLocalStorage('userDetail', user);
         await updateProfile(user, {
           displayName: fullName
         })
+        await setLocalStorage('userDetail', user);
         router.push('/(tabs)');
       }).catch((error) => {
         if (error.code === 'auth/user-already-exist') {
