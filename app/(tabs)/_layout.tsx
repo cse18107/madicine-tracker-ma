@@ -3,27 +3,20 @@ import React, { useEffect, useState } from "react";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/config/FirebaseConfig";
+import { getLocalStorage } from "@/service/storage";
 
-let timeout: number ;
 const TabLayout = () => {
   const router = useRouter();
-  const [authenticated, setAuthenticated] = useState(0)
-  onAuthStateChanged(auth, (user) => {
-    if(user){
-      setAuthenticated(1)
-    }else {
-      setAuthenticated(2)
+  
+  const GetUserDetail =async () => {
+    const userInfo =await getLocalStorage('userDetail');
+    if(!userInfo){
+      router.replace('/login');
     }
-  })
+  }
   useEffect(() => {
-    if(authenticated===2){
-      if(timeout) clearTimeout(timeout)
-      timeout = setTimeout(() => {
-        router.push('/login');
-      },100) as unknown as number
-    }
-    return () => clearTimeout(timeout)
-  }, [authenticated])
+    GetUserDetail()
+  }, [])
   return (
     <Tabs
       screenOptions={{

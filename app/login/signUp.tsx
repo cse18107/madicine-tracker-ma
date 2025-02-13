@@ -4,6 +4,7 @@ import Colors from '@/constant/Colors';
 import { useRouter } from 'expo-router';
 import { auth } from '@/config/FirebaseConfig';
 import {  createUserWithEmailAndPassword, updateProfile  } from 'firebase/auth';
+import { setLocalStorage } from '@/service/storage';
 
 export default function SignUp() {
     const router = useRouter();
@@ -13,6 +14,7 @@ export default function SignUp() {
     const onSubmit = async() => {
       await createUserWithEmailAndPassword(auth, email, password).then(async (userCred) => {
         const user = userCred.user;
+        await setLocalStorage('userDetail', user);
         await updateProfile(user, {
           displayName: fullName
         })

@@ -4,13 +4,15 @@ import Colors from '@/constant/Colors'
 import { useRouter } from 'expo-router'
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/config/FirebaseConfig';
+import { setLocalStorage } from '@/service/storage';
 
 export default function SignIn() {
     const router = useRouter();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const onSubmit = async () => {
-      await signInWithEmailAndPassword(auth, email, password).then((user)=> {
+      await signInWithEmailAndPassword(auth, email, password).then(async (user)=> {
+        await setLocalStorage('userDetail', user);
         router.push('/(tabs)');
       }).catch((error) => {
         if (error.code === 'auth/user-not-found') {
