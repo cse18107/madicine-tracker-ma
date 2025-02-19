@@ -35,7 +35,7 @@ const TabLayout = () => {
       <Tabs.Screen
         name="AddNew"
         options={{
-          tabBarLabel: "Home",
+          tabBarLabel: "Add New Medicine",
           tabBarIcon: ({ color, size }) => (
             <FontAwesome name="plus-square" size={size} color={color} />
           ),
@@ -44,7 +44,7 @@ const TabLayout = () => {
       <Tabs.Screen
         name="Profile"
         options={{
-          tabBarLabel: "Home",
+          tabBarLabel: "Profile",
           tabBarIcon: ({ color, size }) => (
             <FontAwesome name="user" size={size} color={color} />
           ),

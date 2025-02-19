@@ -1,11 +1,15 @@
-import { View, Text, StyleSheet, TextInput, FlatList, TouchableOpacity, Alert } from 'react-native'
+import { View, Text, StyleSheet, TextInput, FlatList, TouchableOpacity, Alert, ActivityIndicator } from 'react-native'
 import React, { useState } from 'react'
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Colors from '@/constant/Colors';
 import { TypeList, WhenToTake } from '@/constant/Options';
 import {Picker} from '@react-native-picker/picker';
 import RNDateTimePicker from '@react-native-community/datetimepicker';
-import { FormatDate, formatDateForText, formatTime } from './../service/ConvertDateTime';
+import { FormatDate, formatDateForText, formatTime, getDatesRange } from './../service/ConvertDateTime';
+import { doc, setDoc } from 'firebase/firestore';
+import { db } from '@/config/FirebaseConfig';
+import { getLocalStorage } from '@/service/storage';
+import { useRouter } from 'expo-router';
 
 type FormDataType = {
     name?: string;
@@ -17,9 +21,11 @@ type FormDataType = {
   }
 export default function AddMedicationForm() {
     const [formData, setFormData] = useState<FormDataType>();
+    const router = useRouter();
     const [showStartDate, setShowStartDate] = useState(false);
     const [showEndDate, setShowEndDate] = useState(false);
     const [showTimePicker, setShowTimePicker] = useState(false);
+    const [loading, setLoading] = useState(false);
     const onHandleInputChange = (field: string, value: any) => {
         setFormData((prev: any) => ({
             ...prev,
@@ -27,16 +33,33 @@ export default function AddMedicationForm() {
         }))
     }
 
-    const SaveMedication = () => {
+    const SaveMedication = async () => {
         const docId = Date.now().toString();
+        const user = await getLocalStorage('userDetail');
+        console.log(user?.user?.email)
         if(!(formData?.name || formData?.type || formData?.dose || formData?.startDate || formData?.endDate || formData?.reminder)){
             Alert.alert("Enter all fields");
             return;
         }
+        const dates = getDatesRange(formData?.startDate, formData?.endDate);
+        setLoading(true);
         try{
-
+            await setDoc(doc(db, 'medication', docId),{
+                ...formData,
+                userEmail: user?.user?.email,
+                docId,
+                dates
+            });
+            setLoading(false);
+            Alert.alert("Great!","New Medication added successfully!",[
+                {
+                    text: 'Ok',
+                    onPress: () => router.push('/(tabs)')
+                }
+            ]);
         } catch (error) {
-            
+            setLoading(false);
+            console.log(error)
         }
     }
   return (
@@ -46,7 +69,7 @@ export default function AddMedicationForm() {
       <Text style={styles.header}>AddMedicationForm</Text>
         <View style={styles.inputGroup}>
             <Ionicons style={styles.icon} name="medkit-outline" size={24} color="black" />
-            <TextInput style={styles.textInput} placeholder='Medicine Name' onChange={(value) => onHandleInputChange('name', value)} />
+            <TextInput style={styles.textInput} placeholder='Medicine Name' onChangeText={(value) => onHandleInputChange('name', value)} />
         </View>
         {/* Type List */}
         <FlatList horizontal showsHorizontalScrollIndicator={false} style={{marginTop: 5}} data={TypeList} renderItem={({item, index}) => (
@@ -57,7 +80,7 @@ export default function AddMedicationForm() {
         {/* Does Input */}
         <View style={styles.inputGroup}>
             <Ionicons style={styles.icon} name="eyedrop-outline" size={24} color="black" />
-            <TextInput style={styles.textInput} placeholder='Does Ex. 3 , 5ml' onChange={(value) => onHandleInputChange('does', value)} />
+            <TextInput style={styles.textInput} placeholder='Does Ex. 3 , 5ml' onChangeText={(value) => onHandleInputChange('does', value)} />
         </View>
         {/* When to take drop down */}
         <View style={styles.inputGroup}>
@@ -120,8 +143,8 @@ export default function AddMedicationForm() {
             />}
         </View>
 
-        <TouchableOpacity style={styles.button}>
-            <Text style={styles.buttonText}>Add New Medication</Text>
+        <TouchableOpacity style={styles.button} onPress={SaveMedication}>
+            {loading ?<ActivityIndicator size={'large'} color={'white'}/>: <Text style={styles.buttonText}>Add New Medication</Text>}
         </TouchableOpacity>
 
     </View>
