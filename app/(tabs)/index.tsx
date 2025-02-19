@@ -12,6 +12,8 @@ export default function HomeScreen() {
     const [medications, setMedications] = useState([{}]);
     const [currentDate, setCurrentDate] = useState(moment().format("YYYY-MM-DD"));
     const fetchData = async () => {
+        const user = await getLocalStorage('userDetail')
+        console.log(user)
         try{
             console.log(new Date(currentDate))
             const currentDateObj = moment(currentDate, "YYYY-MM-DD").toDate();
@@ -29,6 +31,7 @@ export default function HomeScreen() {
         }
     }
     useEffect(() => {
+        
         fetchData();
     }, [currentDate])
     return (
